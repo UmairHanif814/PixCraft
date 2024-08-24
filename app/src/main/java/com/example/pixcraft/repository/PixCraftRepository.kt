@@ -16,4 +16,12 @@ class PixCraftRepository @Inject constructor(private val pixCraftApi: PixCraftAp
             _images.emit(response.body())
         }
     }
+
+    suspend fun getSearchedImages(query:String){
+        _images.emit(null)
+        val response=pixCraftApi.getSearchedImages(query)
+        if (response.isSuccessful && response.body()!=null){
+            _images.emit(response.body())
+        }
+    }
 }

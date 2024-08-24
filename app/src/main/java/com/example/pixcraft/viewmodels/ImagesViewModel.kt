@@ -7,6 +7,7 @@ import com.example.pixcraft.repository.PixCraftRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import retrofit2.http.Query
 import javax.inject.Inject
 
 @HiltViewModel
@@ -17,6 +18,12 @@ class ImagesViewModel @Inject constructor(private val repository: PixCraftReposi
     init {
         viewModelScope.launch {
             repository.getImages()
+        }
+    }
+
+    fun getSearchedImages(query: String){
+        viewModelScope.launch {
+            repository.getSearchedImages(query)
         }
     }
 }
