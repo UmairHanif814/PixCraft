@@ -25,4 +25,6 @@ object NetworkModule {
     fun provideTweetsAPI(retrofit: Retrofit):PixCraftApi{
         return retrofit.create(PixCraftApi::class.java)
     }
+
+
 }
