@@ -13,6 +13,9 @@ class PixCraftRepository @Inject constructor(private val pixCraftApi: PixCraftAp
     private val _images=MutableStateFlow<PixCraftModel?>(null)
     val images:StateFlow<PixCraftModel?> get() = _images
 
+    private val _savedImages=MutableStateFlow<List<ImagesModel>>(emptyList())
+    val savedImages:StateFlow<List<ImagesModel>> get() = _savedImages
+
     private val _isImageExists=MutableStateFlow(false)
     val isImageExistsInDb:StateFlow<Boolean> get() = _isImageExists
 
@@ -46,5 +49,12 @@ class PixCraftRepository @Inject constructor(private val pixCraftApi: PixCraftAp
 
     suspend fun updateIsImageExists(){
         _isImageExists.emit(true)
+    }
+
+    suspend fun getSavedImages(){
+        val response=imagesDAO.getImages()
+        if (response.isNotEmpty()){
+            _savedImages.emit(response)
+        }
     }
 }

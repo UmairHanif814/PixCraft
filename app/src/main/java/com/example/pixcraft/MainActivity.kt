@@ -16,15 +16,19 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.pixcraft.api.PixCraftApi
 import com.example.pixcraft.models.Src
 import com.example.pixcraft.ui.screens.ImageViewerScreen
 import com.example.pixcraft.ui.screens.ImagesScreen
+import com.example.pixcraft.ui.screens.SavedImagesScreen
+import com.example.pixcraft.ui.screens.SavedImagesViewerScreen
 import com.example.pixcraft.ui.theme.PixCraftTheme
 import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
@@ -53,11 +57,14 @@ fun App() {
     val gson = Gson()
     NavHost(navController = navController, startDestination = "ImagesScreen") {
         composable(route = "ImagesScreen") {
-            ImagesScreen {
+            ImagesScreen(onItemClick = {
                 val srcJson = gson.toJson(it)
                 val encodedSrcJson = URLEncoder.encode(srcJson, "UTF-8")
                 navController.navigate("ImageViewerScreen/${encodedSrcJson}")
-            }
+            }, onSavedImagesClick = {
+                navController.navigate("SavedImagesScreen")
+            })
+
         }
         composable(route = "ImageViewerScreen/{imageSrc}", arguments = listOf(
             navArgument("imageSrc") {
@@ -69,21 +76,19 @@ fun App() {
             val src = gson.fromJson(srcJson, Src::class.java)*/
             ImageViewerScreen()
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    PixCraftTheme {
-        Greeting("Android")
+        composable(route="SavedImagesScreen"){
+            SavedImagesScreen{
+                val srcJson = gson.toJson(it)
+                val encodedSrcJson = URLEncoder.encode(srcJson, "UTF-8")
+                navController.navigate("SavedImageViewerScreen/${encodedSrcJson}")
+            }
+        }
+        composable(route="SavedImageViewerScreen/{image}", arguments = listOf(
+            navArgument("image") {
+                type = NavType.StringType
+            }
+        )){
+            SavedImagesViewerScreen()
+        }
     }
 }

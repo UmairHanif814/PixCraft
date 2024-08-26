@@ -1,6 +1,9 @@
 package com.example.pixcraft.ui.screens
 
+import android.content.Context
 import android.util.Log
+import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -23,6 +26,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -39,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.paint
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -70,11 +76,12 @@ import com.example.pixcraft.api.PixCraftApi
 import com.example.pixcraft.models.Photo
 import com.example.pixcraft.models.PixCraftModel
 import com.example.pixcraft.models.Src
+import com.example.pixcraft.viewmodels.ImageViewerViewModel
 import com.example.pixcraft.viewmodels.ImagesViewModel
 import kotlinx.coroutines.flow.StateFlow
 
 @Composable
-fun ImagesScreen(onClick: (Src) -> Unit) {
+fun ImagesScreen(onItemClick: (Src) -> Unit,onSavedImagesClick:()->Unit) {
     val imagesViewModel: ImagesViewModel = hiltViewModel()
     val images: State<PixCraftModel?> = imagesViewModel.images.collectAsState()
     var text by remember { mutableStateOf("") }
@@ -99,7 +106,7 @@ fun ImagesScreen(onClick: (Src) -> Unit) {
                 textDecoration = TextDecoration.None,
                 textAlign = TextAlign.Start
             ),
-            placeholder = { Text("Enter user name") },
+            placeholder = { Text("Search") },
             // at the start of text field.
             leadingIcon = {
                 Icon(
@@ -150,7 +157,7 @@ fun ImagesScreen(onClick: (Src) -> Unit) {
             ) {
                 items(it.photos) {
                     ImageCard(image = it) { photo ->
-                        onClick(photo)
+                        onItemClick(photo)
                     }
                 }
             }
@@ -160,9 +167,46 @@ fun ImagesScreen(onClick: (Src) -> Unit) {
             }
         }
     }
+    SavedImagesButton{
+        onSavedImagesClick()
+    }
 
 }
+@Composable
+fun SavedImagesButton(
+    onSavedImagesClick:()->Unit
+) {
 
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        Button(
+            onClick = {
+                onSavedImagesClick()
+            },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 24.dp)
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(Color(0xFF42f54b), Color(0xFF016106))
+                    ),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
+                ),
+            colors = ButtonDefaults.buttonColors(
+                Color.Transparent
+            ),
+            contentPadding = PaddingValues()
+        ) {
+
+            Text(
+                text = "Saved Images", color = Color.White, modifier = Modifier.padding(16.dp)
+            )
+        }
+    }
+}
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
