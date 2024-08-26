@@ -38,7 +38,7 @@ class SavedImageViewerViewModel @Inject constructor(private val savedStateHandle
         }
     }
 
-    fun setAsWallpaper(context: Context) {
+    fun setAsWallpaper(context: Context, which: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             _loading.value=true
             try {
@@ -54,8 +54,8 @@ class SavedImageViewerViewModel @Inject constructor(private val savedStateHandle
                     // Get the WallpaperManager
                     val wallpaperManager = WallpaperManager.getInstance(context)
 
-                    // Set the bitmap as the wallpaper
-                    wallpaperManager.setBitmap(bitmap)
+                    // Set the bitmap as the wallpaper with the specified flag
+                    wallpaperManager.setBitmap(bitmap, null, true, which)
 
                     // Update the wallpaper status
                     _wallpaperStatus.emit("Wallpaper set successfully")

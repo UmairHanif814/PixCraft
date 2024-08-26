@@ -1,5 +1,7 @@
 package com.example.pixcraft.ui.screens
 
+import android.app.AlertDialog
+import android.app.WallpaperManager
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -72,7 +74,7 @@ fun SetAsWallpaperButton(
     ) {
         Button(
             onClick = {
-                imageViewerViewModel.setAsWallpaper(context)
+                showWallpaperOptions(context, imageViewerViewModel)
             },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -114,4 +116,20 @@ fun LoadingIndicatorView(imageViewerViewModel: SavedImageViewerViewModel) {
             LottiePlaceholder()
         }
     }
+}
+private fun showWallpaperOptions(context: Context, viewModel: SavedImageViewerViewModel) {
+    val options = arrayOf("Home Screen", "Lock Screen", "Both")
+    val wallpaperManager = WallpaperManager.getInstance(context)
+
+    AlertDialog.Builder(context)
+        .setTitle("Set as Wallpaper")
+        .setItems(options) { dialog, which ->
+            when (which) {
+                0 -> viewModel.setAsWallpaper(context, WallpaperManager.FLAG_SYSTEM)
+                1 -> viewModel.setAsWallpaper(context, WallpaperManager.FLAG_LOCK)
+                2 -> viewModel.setAsWallpaper(context, WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK)
+            }
+            dialog.dismiss()
+        }
+        .show()
 }
