@@ -2,15 +2,15 @@ package com.example.pixcraft.viewmodels
 
 import android.content.Context
 import android.graphics.Bitmap
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.BitmapTransformation
 import com.example.pixcraft.models.ImagesModel
 import com.example.pixcraft.models.Src
 import com.example.pixcraft.repository.PixCraftRepository
+import com.example.pixcraft.utils.GlideTransformation
 import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -29,8 +29,8 @@ class ImageViewerViewModel @Inject constructor(
     private val repository: PixCraftRepository,
     private val savedStateHandle: SavedStateHandle,
     @ApplicationContext context: Context
-) :
-    ViewModel() {
+) : ViewModel() {
+
     private val _imageSrc = MutableStateFlow<Src?>(null)
     val imageSrc: StateFlow<Src?> get() = _imageSrc
 
@@ -38,6 +38,8 @@ class ImageViewerViewModel @Inject constructor(
     val loading: StateFlow<Boolean> get() = _loading
 
     val isImageExistsInDb: StateFlow<Boolean> get() = repository.isImageExistsInDb
+
+
 
     init {
         viewModelScope.launch {

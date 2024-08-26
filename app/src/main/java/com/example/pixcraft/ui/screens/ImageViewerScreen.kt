@@ -3,11 +3,19 @@ package com.example.pixcraft.ui.screens
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
@@ -25,8 +33,20 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.bumptech.glide.integration.compose.placeholder
-import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.resource.bitmap.BitmapTransformation
 import com.example.pixcraft.models.Src
+import com.example.pixcraft.utils.BlackWhiteTransformation
+import com.example.pixcraft.utils.BrightnessTransformation
+import com.example.pixcraft.utils.ContrastTransformation
+import com.example.pixcraft.utils.CoolTransformation
+import com.example.pixcraft.utils.GlideTransformation
+import com.example.pixcraft.utils.GrayscaleTransformation
+import com.example.pixcraft.utils.InvertColorsTransformation
+import com.example.pixcraft.utils.NegativeTransformation
+import com.example.pixcraft.utils.SaturationTransformation
+import com.example.pixcraft.utils.SepiaTransformation
+import com.example.pixcraft.utils.VintageTransformation
+import com.example.pixcraft.utils.WarmTransformation
 import com.example.pixcraft.viewmodels.ImageViewerViewModel
 
 @OptIn(ExperimentalGlideComposeApi::class)
@@ -36,16 +56,13 @@ fun ImageViewerScreen() {
     val imageSrc = imageViewerViewModel.imageSrc.collectAsState()
     val context = LocalContext.current
 
-    // The image takes the full size of the screen
+
+
     GlideImage(
         model = imageSrc.value?.original,
         contentDescription = null,
         modifier = Modifier.fillMaxSize(),
         contentScale = ContentScale.Crop,
-        requestBuilderTransform = {
-            it.diskCacheStrategy(DiskCacheStrategy.NONE)
-                .skipMemoryCache(true)
-        },
         loading = placeholder {
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -55,7 +72,16 @@ fun ImageViewerScreen() {
             }
         }
     )
-    DownloadButton(imageViewerViewModel, imageSrc, context)
+
+    // Add the filter list at the bottom
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Bottom
+    ) {
+
+        DownloadButton(imageViewerViewModel, imageSrc, context)
+    }
+
     LoadingIndicator(imageViewerViewModel)
 }
 
@@ -63,7 +89,7 @@ fun ImageViewerScreen() {
 fun DownloadButton(
     imageViewerViewModel: ImageViewerViewModel,
     imageSrc: State<Src?>,
-    context: Context
+    context: Context,
 ) {
     val isExists = imageViewerViewModel.isImageExistsInDb.collectAsState()
 
