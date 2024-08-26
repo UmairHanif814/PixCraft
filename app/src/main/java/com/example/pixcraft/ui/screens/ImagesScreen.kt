@@ -1,8 +1,6 @@
 package com.example.pixcraft.ui.screens
 
-import android.content.Context
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,7 +22,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -43,12 +40,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -62,119 +58,132 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
-import com.bumptech.glide.integration.compose.Placeholder
-import com.bumptech.glide.integration.compose.placeholder
 import com.example.pixcraft.R
-import com.example.pixcraft.api.PixCraftApi
 import com.example.pixcraft.models.Photo
 import com.example.pixcraft.models.PixCraftModel
 import com.example.pixcraft.models.Src
-import com.example.pixcraft.viewmodels.ImageViewerViewModel
 import com.example.pixcraft.viewmodels.ImagesViewModel
-import kotlinx.coroutines.flow.StateFlow
 
 @Composable
-fun ImagesScreen(onItemClick: (Src) -> Unit,onSavedImagesClick:()->Unit) {
+fun ImagesScreen(onItemClick: (Src) -> Unit, onSavedImagesClick: () -> Unit) {
     val imagesViewModel: ImagesViewModel = hiltViewModel()
     val images: State<PixCraftModel?> = imagesViewModel.images.collectAsState()
     var text by remember { mutableStateOf("") }
     val keyboardController = LocalSoftwareKeyboardController.current
-    Column {
-        Spacer(modifier = Modifier.height(40.dp))
-        TextField(
-            value = text,
-            onValueChange = { text = it },
-            modifier = Modifier
-                .padding(all = 16.dp)
-                .fillMaxWidth(),
-            enabled = true,
-            readOnly = false,
-            textStyle = TextStyle(
-                color = Color.Black,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold,
-                fontStyle = FontStyle.Normal,
-                fontFamily = FontFamily.SansSerif,
-                letterSpacing = 0.5.sp,
-                textDecoration = TextDecoration.None,
-                textAlign = TextAlign.Start
-            ),
-            placeholder = { Text("Search") },
-            // at the start of text field.
-            leadingIcon = {
-                Icon(
-                    Icons.Filled.Search,
-                    contentDescription = null,
-                    tint = Color.Black
+    val isNetworkAvailable = imagesViewModel.isNetworkAvailable.value
+    val context = LocalContext.current
+    if (isNetworkAvailable) {
+        Column {
+            Spacer(modifier = Modifier.height(40.dp))
+            TextField(
+                value = text,
+                onValueChange = { text = it },
+                modifier = Modifier
+                    .padding(all = 16.dp)
+                    .fillMaxWidth(),
+                enabled = true,
+                readOnly = false,
+                textStyle = TextStyle(
+                    color = Color.Black,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontStyle = FontStyle.Normal,
+                    fontFamily = FontFamily.SansSerif,
+                    letterSpacing = 0.5.sp,
+                    textDecoration = TextDecoration.None,
+                    textAlign = TextAlign.Start
+                ),
+                placeholder = { Text("Search") },
+                // at the start of text field.
+                leadingIcon = {
+                    Icon(
+                        Icons.Filled.Search,
+                        contentDescription = null,
+                        tint = Color.Black
+                    )
+                },
+                isError = false,
+                visualTransformation = VisualTransformation.None,
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.None,
+                    autoCorrect = true,
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        if (text.isNotBlank()) {
+                            imagesViewModel.getSearchedImages(text)
+                            Log.d("ImagesScreen", "ImagesScreen: ${imagesViewModel.images.value}")
+                            text = ""
+                            keyboardController?.hide()
+                        }
+                    }
+                ),
+                singleLine = true,
+                maxLines = 1,
+                minLines = 1,
+                interactionSource = remember { MutableInteractionSource() },
+                shape = MaterialTheme.shapes.medium,
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color.Green,
+                    disabledTextColor = Color.Green,
+                    focusedContainerColor = Color.LightGray,
+                    unfocusedContainerColor = Color.LightGray,
+                    cursorColor = Color.Gray,
+                    errorCursorColor = Color.Red,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
                 )
-            },
-            isError = false,
-            visualTransformation = VisualTransformation.None,
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.None,
-                autoCorrect = true,
-                keyboardType = KeyboardType.Text,
-                imeAction = ImeAction.Done
-            ),
-            keyboardActions = KeyboardActions(
-                onDone = {
-                    if (text.isNotBlank()){
-                        imagesViewModel.getSearchedImages(text)
-                        Log.d("ImagesScreen", "ImagesScreen: ${imagesViewModel.images.value}")
-                        text=""
-                        keyboardController?.hide()
+            )
+            images.value?.let {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    contentPadding = PaddingValues(8.dp),
+                    verticalArrangement = Arrangement.SpaceAround
+                ) {
+                    items(it.photos) {
+                        ImageCard(image = it) { photo ->
+                            onItemClick(photo)
+                        }
                     }
                 }
-            ),
-            singleLine = true,
-            maxLines = 1,
-            minLines = 1,
-            interactionSource = remember { MutableInteractionSource() },
-            shape = MaterialTheme.shapes.medium,
-            colors = TextFieldDefaults.colors(
-                focusedTextColor = Color.Green,
-                disabledTextColor = Color.Green,
-                focusedContainerColor = Color.LightGray,
-                unfocusedContainerColor = Color.LightGray,
-                cursorColor = Color.Gray,
-                errorCursorColor = Color.Red,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            )
-        )
-        images.value?.let {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                contentPadding = PaddingValues(8.dp),
-                verticalArrangement = Arrangement.SpaceAround
-            ) {
-                items(it.photos) {
-                    ImageCard(image = it) { photo ->
-                        onItemClick(photo)
-                    }
+            } ?: run {
+                Box(modifier = Modifier.fillMaxSize(1f), contentAlignment = Alignment.Center) {
+                    LottiePlaceholder()
                 }
             }
-        } ?: run {
-            Box(modifier = Modifier.fillMaxSize(1f), contentAlignment = Alignment.Center) {
-                LottiePlaceholder()
+        }
+
+    } else {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(text = "Network Unavailable")
+                Button(onClick = { imagesViewModel.checkNetworkState(context) }) {
+                    Text(text = "Retry")
+                }
             }
         }
     }
-    SavedImagesButton{
+    SavedImagesButton {
         onSavedImagesClick()
     }
 
 }
+
 @Composable
 fun SavedImagesButton(
-    onSavedImagesClick:()->Unit
+    onSavedImagesClick: () -> Unit
 ) {
 
     Box(
