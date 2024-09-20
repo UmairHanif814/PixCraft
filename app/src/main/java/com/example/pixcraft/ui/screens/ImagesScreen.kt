@@ -230,7 +230,7 @@ fun ImageCard(image: Photo, onClick: (Src) -> Unit) {
         contentAlignment = Alignment.BottomCenter
     ) {
         GlideImage(
-            model = image.src.original,
+            model = image.src.tiny,
             contentDescription = null,
             modifier = Modifier.fillMaxSize(1f),
             contentScale = ContentScale.Crop,

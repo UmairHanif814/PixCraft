@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import android.util.Log
 
 fun Context.isNetworkAvailable(): Boolean {
     val connectivityManager =
@@ -19,4 +20,8 @@ fun Context.isNetworkAvailable(): Boolean {
         actNw.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH) -> true
         else -> false
     }
+}
+
+fun String.printIt() {
+    Log.e("-->", this)
 }
