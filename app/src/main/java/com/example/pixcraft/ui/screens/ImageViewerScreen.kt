@@ -2,6 +2,7 @@ package com.example.pixcraft.ui.screens
 
 import android.content.Context
 import android.widget.Toast
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -15,6 +16,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -47,39 +50,43 @@ import com.example.pixcraft.utils.SaturationTransformation
 import com.example.pixcraft.utils.SepiaTransformation
 import com.example.pixcraft.utils.VintageTransformation
 import com.example.pixcraft.utils.WarmTransformation
+import com.example.pixcraft.utils.printIt
 import com.example.pixcraft.viewmodels.ImageViewerViewModel
 
-@OptIn(ExperimentalGlideComposeApi::class)
+@OptIn(ExperimentalGlideComposeApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun ImageViewerScreen() {
     val imageViewerViewModel: ImageViewerViewModel = hiltViewModel()
     val imageSrc = imageViewerViewModel.imageSrc.collectAsState()
+    val initialPage = imageViewerViewModel.initialPage.collectAsState()
     val context = LocalContext.current
+    val pagerState= rememberPagerState(initialPage = initialPage.value) {
+        imageSrc.value.size
+    }
+    HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize(1f)) {page->
+        "${imageSrc.value.size }:${imageSrc.value[page].src.original}".printIt()
+        GlideImage(
+            model = imageSrc.value[page].src.original,
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop,
+//            loading = placeholder {
+//                Box(
+//                    modifier = Modifier.fillMaxSize(),
+//                    contentAlignment = Alignment.Center
+//                ) {
+//                    LottiePlaceholder()
+//                }
+//            }
+        )
+    }
 
-
-
-    GlideImage(
-        model = imageSrc.value?.original,
-        contentDescription = null,
-        modifier = Modifier.fillMaxSize(),
-        contentScale = ContentScale.Crop,
-        loading = placeholder {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                LottiePlaceholder()
-            }
-        }
-    )
-
-    // Add the filter list at the bottom
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Bottom
     ) {
 
-        DownloadButton(imageViewerViewModel, imageSrc, context)
+        DownloadButton(imageViewerViewModel, imageSrc.value[pagerState.currentPage].src, context)
     }
 
     LoadingIndicator(imageViewerViewModel)
@@ -88,7 +95,7 @@ fun ImageViewerScreen() {
 @Composable
 fun DownloadButton(
     imageViewerViewModel: ImageViewerViewModel,
-    imageSrc: State<Src?>,
+    imageSrc: Src?,
     context: Context,
 ) {
     val isExists = imageViewerViewModel.isImageExistsInDb.collectAsState()
@@ -100,7 +107,7 @@ fun DownloadButton(
         Button(
             onClick = {
                 if (!isExists.value) {
-                    imageViewerViewModel.saveImage(imageSrc.value?.original, context)
+                    imageViewerViewModel.saveImage(imageSrc?.original, context)
                 }else{
                     Toast.makeText(context, "Already Saved.", Toast.LENGTH_SHORT).show()
                 }

@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -71,7 +72,7 @@ import com.example.pixcraft.models.Src
 import com.example.pixcraft.viewmodels.ImagesViewModel
 
 @Composable
-fun ImagesScreen(onItemClick: (Src) -> Unit, onSavedImagesClick: () -> Unit) {
+fun ImagesScreen(onItemClick: (List<Photo>,Int) -> Unit, onSavedImagesClick: () -> Unit) {
     val imagesViewModel: ImagesViewModel = hiltViewModel()
     val images: State<PixCraftModel?> = imagesViewModel.images.collectAsState()
     var text by remember { mutableStateOf("") }
@@ -142,15 +143,15 @@ fun ImagesScreen(onItemClick: (Src) -> Unit, onSavedImagesClick: () -> Unit) {
                     unfocusedIndicatorColor = Color.Transparent
                 )
             )
-            images.value?.let {
+            images.value?.let {list->
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     contentPadding = PaddingValues(8.dp),
                     verticalArrangement = Arrangement.SpaceAround
                 ) {
-                    items(it.photos) {
-                        ImageCard(image = it) { photo ->
-                            onItemClick(photo)
+                    itemsIndexed(list.photos) {index,item->
+                        ImageCard(image = item) { photo ->
+                            onItemClick(list.photos,index)
                         }
                     }
                 }

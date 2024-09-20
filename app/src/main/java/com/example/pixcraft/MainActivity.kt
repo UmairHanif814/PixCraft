@@ -30,6 +30,7 @@ import com.example.pixcraft.ui.screens.ImagesScreen
 import com.example.pixcraft.ui.screens.SavedImagesScreen
 import com.example.pixcraft.ui.screens.SavedImagesViewerScreen
 import com.example.pixcraft.ui.theme.PixCraftTheme
+import com.example.pixcraft.utils.printIt
 import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.GlobalScope
@@ -57,37 +58,38 @@ fun App() {
     val gson = Gson()
     NavHost(navController = navController, startDestination = "ImagesScreen") {
         composable(route = "ImagesScreen") {
-            ImagesScreen(onItemClick = {
-                val srcJson = gson.toJson(it)
+            ImagesScreen(onItemClick = { list,index ->
+                val srcJson = gson.toJson(list)
                 val encodedSrcJson = URLEncoder.encode(srcJson, "UTF-8")
-                navController.navigate("ImageViewerScreen/${encodedSrcJson}")
+                navController.navigate("ImageViewerScreen/${encodedSrcJson}/$index")
             }, onSavedImagesClick = {
                 navController.navigate("SavedImagesScreen")
             })
 
         }
-        composable(route = "ImageViewerScreen/{imageSrc}", arguments = listOf(
+        composable(route = "ImageViewerScreen/{imageSrc}/{initialPage}", arguments = listOf(
             navArgument("imageSrc") {
                 type = NavType.StringType
-            }
+            },
+            navArgument("initialPage") { type = NavType.IntType }
         )) {
             /*val encodedSrcJson = it.arguments?.getString("imageSrc") ?: ""
             val srcJson = URLDecoder.decode(encodedSrcJson, "UTF-8")
             val src = gson.fromJson(srcJson, Src::class.java)*/
             ImageViewerScreen()
         }
-        composable(route="SavedImagesScreen"){
-            SavedImagesScreen{
+        composable(route = "SavedImagesScreen") {
+            SavedImagesScreen {
                 val srcJson = gson.toJson(it)
                 val encodedSrcJson = URLEncoder.encode(srcJson, "UTF-8")
                 navController.navigate("SavedImageViewerScreen/${encodedSrcJson}")
             }
         }
-        composable(route="SavedImageViewerScreen/{image}", arguments = listOf(
+        composable(route = "SavedImageViewerScreen/{image}", arguments = listOf(
             navArgument("image") {
                 type = NavType.StringType
             }
-        )){
+        )) {
             SavedImagesViewerScreen()
         }
     }
