@@ -19,82 +19,67 @@ object MediaStoreHelper {
 
     @OptIn(ExperimentalTime::class)
     @SuppressLint("Range")
-    suspend fun getAllVideoFiles(
-        context: Context,
-        result: ((
-            list: ArrayList<MediaStoreImagesModel>,
-        ) -> Unit)? = null,
-    ) {
-        measureTime {
-            var cursor: Cursor? = null
-            try {
-                val list = ArrayList<MediaStoreImagesModel>()
-                list.clear()
+    suspend fun getAllImages(context: Context): List<MediaStoreImagesModel> {
+        var cursor: Cursor? = null
+        val list = ArrayList<MediaStoreImagesModel>()
 
-                val selection = MediaStore.Video.Media.DURATION + "> 0"
+        try {
+            val selection = MediaStore.Images.Media.DURATION + "> 0"
 
-                val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
-                } else {
-                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-                }
-
-                //For Android 10 and Android 11
-                cursor = (context.contentResolver.query(
-                    uri,
-                    projectionColumVideos, selection,
-                    null,
-                    MediaStore.Video.Media.DATE_ADDED + " ASC",
-                ) ?: return)
-
-                cursor.moveToFirst()
-
-
-                while (!cursor.isAfterLast) {
-                    if (!coroutineContext.isActive) {
-                        break
-                    }
-                    val model = MediaStoreImagesModel()
-
-                    model.title =
-                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME))
-
-                    model.imagePath =
-                        cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DATA))
-
-                    val urix: Uri = ContentUris.withAppendedId(
-                        MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                        cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID))
-                    )
-                    model.uri = urix.toString()
-
-                    list.add(model)
-
-                    cursor.moveToNext()
-                }
-
-                withContext(Dispatchers.Main) {
-                    result?.invoke(
-                        list
-                    )
-                }
-
-
-            } catch (e: Exception) {
-                e.message?.printIt()
-            } finally {
-                cursor?.close()
+            val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
+            } else {
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI
             }
-        }.apply {
-            "t-->$this".printIt()
+
+            cursor = context.contentResolver.query(
+                uri,
+                projectionColumVideos, null,
+                null,
+                MediaStore.Images.Media.DATE_ADDED + " ASC"
+            ) ?: return emptyList()
+
+            cursor.moveToFirst()
+
+            while (!cursor.isAfterLast) {
+//                if (!coroutineContext.isActive) {
+//                    break
+//                }
+                val model = MediaStoreImagesModel()
+
+                model.title = cursor.getString(
+                    cursor.getColumnIndexOrThrow(MediaStore.Images.Media.TITLE)
+                )
+
+                model.imagePath = cursor.getString(
+                    cursor.getColumnIndex(MediaStore.Images.Media.DATA)
+                )
+
+                val urix: Uri = ContentUris.withAppendedId(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID))
+                )
+                model.uri = urix.toString()
+
+                list.add(model)
+                cursor.moveToNext()
+            }
+        } catch (e: Exception) {
+            e.message?.printIt()
+        } finally {
+            cursor?.close()
         }
+
+
+        return list
     }
+
 
     val projectionColumVideos =
         arrayOf(
-            MediaStore.Video.Media._ID,
-            MediaStore.Video.Media.TITLE,
-            MediaStore.Video.Media.DATA,
+            MediaStore.Images.Media._ID,
+            MediaStore.Images.Media.TITLE,
+            MediaStore.Images.Media.DATA,
         )
 
 }

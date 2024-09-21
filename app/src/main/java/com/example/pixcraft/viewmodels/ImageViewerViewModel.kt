@@ -6,12 +6,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.bitmap.BitmapTransformation
 import com.example.pixcraft.models.ImagesModel
+import com.example.pixcraft.models.MediaStoreImagesModel
 import com.example.pixcraft.models.Photo
-import com.example.pixcraft.models.Src
 import com.example.pixcraft.repository.PixCraftRepository
-import com.example.pixcraft.utils.GlideTransformation
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -36,6 +34,9 @@ class ImageViewerViewModel @Inject constructor(
     private val _imageSrc = MutableStateFlow<List<Photo>>(emptyList())
     val imageSrc: StateFlow<List<Photo>> get() = _imageSrc
 
+    private val _galleryImageSrc = MutableStateFlow<List<MediaStoreImagesModel>>(emptyList())
+    val galleryImageSrc: StateFlow<List<MediaStoreImagesModel>> get() = _galleryImageSrc
+
     private val _loading = MutableStateFlow(false)
     val loading: StateFlow<Boolean> get() = _loading
 
@@ -52,14 +53,20 @@ class ImageViewerViewModel @Inject constructor(
             val srcList: List<Photo> = Gson().fromJson(srcJson, srcListType)
             _imageSrc.emit(srcList)
 
+
+            val gallerySrcListType = object : TypeToken<List<MediaStoreImagesModel>>() {}.type
+            val gallerySrcList: List<MediaStoreImagesModel> = Gson().fromJson(srcJson, gallerySrcListType)
+            _galleryImageSrc.emit(gallerySrcList)
+
+
             val initialPageIndex = savedStateHandle.get<Int>("initialPage") ?: 0
             _initialPage.emit(initialPageIndex)
 
 
-            val fileName = "image_${extractImageName(srcList[initialPageIndex].src.original)}.jpg"
-            val directory = File(context.cacheDir, "PixCraft Images")
-            val file = File(directory, fileName)
-            isImageExistsInDB(file.absolutePath)
+//            val fileName = "image_${extractImageName(srcList[initialPageIndex].src.original)}.jpg"
+//            val directory = File(context.cacheDir, "PixCraft Images")
+//            val file = File(directory, fileName)
+//            isImageExistsInDB(file.absolutePath)
         }
     }
 

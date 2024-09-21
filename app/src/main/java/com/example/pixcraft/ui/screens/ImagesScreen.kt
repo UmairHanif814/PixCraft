@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
@@ -72,7 +73,7 @@ import com.example.pixcraft.models.Src
 import com.example.pixcraft.viewmodels.ImagesViewModel
 
 @Composable
-fun ImagesScreen(onItemClick: (List<Photo>,Int) -> Unit, onSavedImagesClick: () -> Unit) {
+fun ImagesScreen(onItemClick: (List<Photo>,Int) -> Unit) {
     val imagesViewModel: ImagesViewModel = hiltViewModel()
     val images: State<PixCraftModel?> = imagesViewModel.images.collectAsState()
     var text by remember { mutableStateOf("") }
@@ -81,7 +82,7 @@ fun ImagesScreen(onItemClick: (List<Photo>,Int) -> Unit, onSavedImagesClick: () 
     val context = LocalContext.current
     if (isNetworkAvailable) {
         Column {
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(10.dp))
             TextField(
                 value = text,
                 onValueChange = { text = it },
@@ -176,10 +177,6 @@ fun ImagesScreen(onItemClick: (List<Photo>,Int) -> Unit, onSavedImagesClick: () 
             }
         }
     }
-    SavedImagesButton {
-        onSavedImagesClick()
-    }
-
 }
 
 @Composable

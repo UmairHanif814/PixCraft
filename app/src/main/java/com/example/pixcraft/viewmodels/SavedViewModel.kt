@@ -14,8 +14,11 @@ class SavedViewModel @Inject constructor(private val repository: PixCraftReposit
     val savedImaged:StateFlow<List<ImagesModel>> get() = repository.savedImages
 
     init {
-        viewModelScope.launch {
-            repository.getSavedImages()
-        }
+//        viewModelScope.launch {
+//            repository.getSavedImages()
+//        }
+    }
+        suspend fun getSavedImages(){
+        repository.getSavedImages()
     }
 }

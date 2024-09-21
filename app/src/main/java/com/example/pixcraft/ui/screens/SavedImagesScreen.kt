@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -32,6 +33,9 @@ import kotlinx.coroutines.flow.StateFlow
 fun SavedImagesScreen(onItemClick:(String)->Unit){
     val savedImagesViewModel:SavedViewModel= hiltViewModel()
     val savedImages: State<List<ImagesModel>> = savedImagesViewModel.savedImaged.collectAsState()
+    LaunchedEffect(true) {
+        savedImagesViewModel.getSavedImages()
+    }
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         contentPadding = PaddingValues(8.dp),
