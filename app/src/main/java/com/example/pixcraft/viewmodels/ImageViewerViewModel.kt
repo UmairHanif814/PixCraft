@@ -2,6 +2,7 @@ package com.example.pixcraft.viewmodels
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.os.Environment
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -40,6 +41,9 @@ class ImageViewerViewModel @Inject constructor(
     private val _loading = MutableStateFlow(false)
     val loading: StateFlow<Boolean> get() = _loading
 
+    private val _progress = MutableStateFlow<Pair<Int,Int>>(Pair(0,0))
+    val progress: StateFlow<Pair<Int,Int>> get() = _progress
+
     val isImageExistsInDb: StateFlow<Boolean> get() = repository.isImageExistsInDb
 
     private val _initialPage = MutableStateFlow(0)
@@ -63,7 +67,8 @@ class ImageViewerViewModel @Inject constructor(
             _initialPage.emit(initialPageIndex)
 
 
-//            val fileName = "image_${extractImageName(srcList[initialPageIndex].src.original)}.jpg"
+//            val fileName = "image_${extractImageName(srcList[initialPageIndex].s
+        //            rc.original)}.jpg"
 //            val directory = File(context.cacheDir, "PixCraft Images")
 //            val file = File(directory, fileName)
 //            isImageExistsInDB(file.absolutePath)
@@ -75,7 +80,68 @@ class ImageViewerViewModel @Inject constructor(
             repository.isImageExistsInDB(imagePath)
         }
     }
+    // Add a cancellation flag
+    private val _isCancelled = MutableStateFlow(false)
 
+    fun saveAllImages(context: Context,isComingFromGallery:Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _loading.value = true
+            _isCancelled.value = false  // Reset the cancellation flag
+
+            val directory = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "PixCraft Images")
+            if (!directory.exists()) {
+                directory.mkdirs()
+            }
+
+            val images = if (isComingFromGallery){
+                galleryImageSrc.value
+            }else{
+                imageSrc.value
+            }
+            var savedCount = 0
+            _progress.value = Pair(savedCount, images.size)
+
+            for (image in images) {
+                if (_isCancelled.value) {
+                    break
+                }
+
+                try {
+                    val imageUrl = when (image) {
+                        is MediaStoreImagesModel -> image.imagePath
+                        is Photo -> image.src.original
+                        else -> continue
+                    }
+                    val fileName = "image_${extractImageName(imageUrl)}.jpg"
+                    val file = File(directory, fileName)
+
+                    if (!file.exists()) {
+                        val bitmap = Glide.with(context)
+                            .asBitmap()
+                            .load(imageUrl)
+                            .submit()
+                            .get()
+
+                        saveBitmapToFile(bitmap, file)
+                        repository.insetImage(ImagesModel(imagePath = file.absolutePath))
+                    }
+
+                    savedCount++
+                    _progress.value = Pair(savedCount, images.size)
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
+            }
+
+            _loading.value = false
+        }
+    }
+
+    // Add a method to handle cancellation
+    fun cancelSaveOperation() {
+        _isCancelled.value = true
+        _loading.value = false
+    }
     fun saveImage(imageUrl: String?, context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
             _loading.value = true
@@ -119,7 +185,7 @@ class ImageViewerViewModel @Inject constructor(
     private fun saveBitmapToFile(bitmap: Bitmap, file: File) {
         try {
             FileOutputStream(file).use { out ->
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 50, out)
                 out.flush()
             }
         } catch (e: IOException) {

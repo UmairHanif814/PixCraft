@@ -45,10 +45,8 @@ class CameraViewModel @Inject constructor(
                 val inputStream = context.contentResolver.openInputStream(imageUri)
                 inputStream?.copyTo(outputStream)
 
-                // Get the file path using the content resolver
                 val filePath = getFilePathFromUri(resolver, imageUriResult)
 
-                // Insert image details into the repository
                 if (filePath != null) {
                     repository.insetImage(
                         ImagesModel(

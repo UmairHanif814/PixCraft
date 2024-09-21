@@ -58,10 +58,8 @@ fun GalleryImagesScreen(onItemClick: (List<MediaStoreImagesModel>, Int) -> Unit)
     // Check for permissions
     val cameraPermissionState = rememberPermissionState(permission = permissions)
 
-    // Handle permission state changes
     LaunchedEffect(cameraPermissionState.status) {
         if (cameraPermissionState.status.isGranted) {
-            // Fetch images again when permission is granted
             imagesViewModel.getGalleryImages(context)
         }
     }
@@ -112,16 +110,12 @@ fun GalleryImagesScreen(onItemClick: (List<MediaStoreImagesModel>, Int) -> Unit)
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Check if the permission was permanently denied
             if (!cameraPermissionState.status.shouldShowRationale) {
-                // If permission can be requested again
                 Button(onClick = { cameraPermissionState.launchPermissionRequest() }) {
                     Text("Grant Permission")
                 }
             } else {
-                // If permission is permanently denied
                 Button(onClick = {
-                    // Open app settings
                     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                         data = Uri.fromParts("package", context.packageName, null)
                     }
